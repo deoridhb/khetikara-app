@@ -1,4 +1,18 @@
-import React, { useEffect, useMemo, useState, useCallback, useReducer, memo } from "react";
+import React, { useEffect, useState, useCallback, memo } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { CartProvider } from './context/CartContext';
+
+// Pages
+import HomePage from './pages/HomePage';
+import ProductsPage from './pages/ProductsPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderSuccessPage from './pages/OrderSuccessPage';
+
+// Components
+import Header from './components/common/Header';
+import Footer from './components/common/Footer';
 import {
   ArrowUpCircle,
   ShoppingCart,
@@ -1307,4 +1321,22 @@ function KhetiKaraApp() {
   );
 }
 
-export default KhetiKaraApp;
+function App() {
+  return (
+    <CartProvider>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
+      />
+      <KhetiKaraApp />
+    </CartProvider>
+  );
+}
+
+export default App;

@@ -1,12 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables')
-  throw new Error('Missing Supabase configuration')
-}
+const supabaseUrl = "https://ezctmesapmuuoiusjlau.supabase.co"
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6Y3RtZXNhcG11dW9pdXNqbGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU0OTIyMTEsImV4cCI6MjA3MTA2ODIxMX0.kV1E_riNha-IgX5__Lf3XO1HTYhP4e01o_GlJ1Pbo_4"
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
