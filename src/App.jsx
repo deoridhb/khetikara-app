@@ -931,3 +931,380 @@ function KhetiKaraApp() {
               {cartSummary.count > 99 ? "99+" : cartSummary.count}
             </span>
           )}
+        </button>
+      </div>
+    </div>
+  ));
+
+  // Main render logic
+  if (screen === "splash") {
+    return <SplashScreen />;
+  }
+
+  if (orderPlaced) {
+    return (
+      <ErrorBoundary>
+        <div className="min-h-screen bg-gray-50">
+          <ConnectionStatus isOnline={isOnline} />
+          <div className="max-w-5xl mx-auto px-4 py-8">
+            <div className="text-center space-y-6">
+              <div className="relative mx-auto w-20 h-20">
+                <CheckCircle2 className="w-full h-full text-green-600" />
+                <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-30"></div>
+              </div>
+              
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Confirmed!</h1>
+                <p className="text-gray-600">Order #{orderId}</p>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 border text-left space-y-4">
+                <h2 className="font-semibold text-lg">Order Summary</h2>
+                
+                <div className="space-y-2">
+                  {cartSummary.items.map(item => {
+                    const grade = item.product_grades?.find(g => g.grade_key === item.grade);
+                    const price = Math.round(item.base_price * (grade?.price_multiplier ?? 1));
+                    return (
+                      <div key={item.id} className="flex justify-between text-sm">
+                        <span>{item.name} ({item.variety}) × {item.qty}</span>
+                        <span>₹{price * item.qty}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="border-t pt-4 space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Items Total</span>
+                    <span>₹{cartSummary.itemTotal}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Handling Fee</span>
+                    <span>₹{cartSummary.handlingFee}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold">
+                    <span>Total Amount</span>
+                    <span>₹{cartSummary.totalAmount}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-sm text-gray-600 space-y-2">
+                <p>📱 You'll receive SMS updates on your order status</p>
+                <p>🚚 Expected delivery: Tomorrow morning</p>
+                <p>💳 Pay cash on delivery</p>
+              </div>
+
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white w-full"
+                onClick={handleOrderComplete}
+              >
+                Continue Shopping
+              </Button>
+            </div>
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  if (screen === "cart") {
+    return (
+      <ErrorBoundary>
+        <div className="min-h-screen bg-gray-50 pb-20">
+          <ConnectionStatus isOnline={isOnline} />
+          <Header />
+          
+          <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+            {cartSummary.count === 0 ? (
+              <div className="text-center py-12">
+                <ShoppingCart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold text-gray-700 mb-2">Your cart is empty</h2>
+                <p className="text-gray-500 mb-6">Add some fresh vegetables to get started</p>
+                <Button
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => {
+                    setScreen("catalogue");
+                    setActiveTab("catalogue");
+                  }}
+                >
+                  Browse Products
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Cart Items */}
+                <Card className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <CardTitle className="text-lg">Your Cart ({cartSummary.count} items)</CardTitle>
+                    <Button
+                      className="text-red-600 hover:bg-red-50 bg-transparent border-none"
+                      onClick={clearCart}
+                    >
+                      Clear All
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {cartSummary.items.map(item => {
+                      const grade = item.product_grades?.find(g => g.grade_key === item.grade);
+                      const price = Math.round(item.base_price * (grade?.price_multiplier ?? 1));
+                      
+                      return (
+                        <div key={item.id} className="flex items-center gap-4 p-3 border rounded-xl">
+                          <OptimizedImage
+                            src={item.image_url}
+                            alt={item.name}
+                            className="w-16 h-16 rounded-lg object-cover"
+                          />
+                          
+                          <div className="flex-1">
+                            <div className="font-medium">{item.name} ({item.variety})</div>
+                            <div className="text-sm text-gray-500">{grade?.grade_label}</div>
+                            <div className="text-lg font-semibold">₹{price} / {item.unit}</div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="h-8 w-8 grid place-content-center rounded-full border hover:bg-gray-50 transition"
+                              onClick={() => updateQuantity(item.id, -1)}
+                              aria-label="Decrease quantity"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                            <span className="min-w-[2rem] text-center font-medium">
+                              {item.qty}
+                            </span>
+                            <button
+                              className="h-8 w-8 grid place-content-center rounded-full border hover:bg-gray-50 transition"
+                              onClick={() => updateQuantity(item.id, 1)}
+                              aria-label="Increase quantity"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
+                          
+                          <div className="text-right">
+                            <div className="font-semibold">₹{price * item.qty}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+
+                {/* Delivery Information */}
+                <Card className="p-4">
+                  <CardTitle className="text-lg mb-4">Delivery Information</CardTitle>
+                  
+                  <div className="space-y-4">
+                    {recipients.map((recipient, index) => (
+                      <div key={recipient.id} className="space-y-3 p-4 border rounded-xl bg-gray-50">
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">Recipient {index + 1}</div>
+                          {recipients.length > 1 && (
+                            <button
+                              className="text-red-600 hover:bg-red-50 p-1 rounded"
+                              onClick={() => removeRecipient(recipient.id)}
+                              aria-label="Remove recipient"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <ValidatedInput
+                              placeholder="Full Name"
+                              value={recipient.name}
+                              onChange={(value) => updateRecipient(recipient.id, 'name', value)}
+                              validator={(value) => value.trim().length > 0}
+                              errorMessage="Name is required"
+                              icon={UserIcon}
+                            />
+                            {recipient.errors.name && (
+                              <div className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {recipient.errors.name}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <ValidatedInput
+                              type="tel"
+                              placeholder="Phone Number"
+                              value={recipient.phone}
+                              onChange={(value) => updateRecipient(recipient.id, 'phone', value)}
+                              validator={validatePhone}
+                              errorMessage="Invalid phone number"
+                              icon={Phone}
+                            />
+                            {recipient.errors.phone && (
+                              <div className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {recipient.errors.phone}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <ValidatedInput
+                              placeholder="Flat/House Address"
+                              value={recipient.flat}
+                              onChange={(value) => updateRecipient(recipient.id, 'flat', value)}
+                              validator={(value) => value.trim().length > 0}
+                              errorMessage="Address is required"
+                              icon={Home}
+                            />
+                            {recipient.errors.flat && (
+                              <div className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {recipient.errors.flat}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <ValidatedInput
+                              placeholder="PIN Code"
+                              value={recipient.pin}
+                              onChange={(value) => updateRecipient(recipient.id, 'pin', value)}
+                              validator={validatePinCode}
+                              errorMessage="Invalid PIN code"
+                              icon={MapPin}
+                            />
+                            {recipient.errors.pin && (
+                              <div className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                {recipient.errors.pin}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button
+                      className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 border-dashed border-2 border-gray-300"
+                      onClick={addRecipient}
+                    >
+                      + Add Another Recipient
+                    </Button>
+                  </div>
+                </Card>
+
+                {/* Order Summary */}
+                <Card className="p-4">
+                  <CardTitle className="text-lg mb-4">Order Summary</CardTitle>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Items Total ({cartSummary.count} items)</span>
+                      <span>₹{cartSummary.itemTotal}</span>
+                    </div>
+                    <div className="flex justify-between text-green-600">
+                      <span>You Saved</span>
+                      <span>-₹{cartSummary.saved}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Handling Fee (2%)</span>
+                      <span>₹{cartSummary.handlingFee}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Delivery Fee</span>
+                      <span className="text-green-600">FREE</span>
+                    </div>
+                    <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                      <span>Total Amount</span>
+                      <span>₹{cartSummary.totalAmount}</span>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleOrderSubmit}
+                    loading={loading}
+                  >
+                    {loading ? "Placing Order..." : "Place Order (Cash on Delivery)"}
+                  </Button>
+                  
+                  <div className="text-xs text-gray-500 text-center mt-2">
+                    By placing this order, you agree to pay cash on delivery
+                  </div>
+                </Card>
+              </>
+            )}
+          </div>
+          
+          <BottomNav />
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  return (
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-50 pb-20">
+        <ConnectionStatus isOnline={isOnline} />
+        <Header />
+        
+        <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+          <MarketMetrics />
+          <PromoBanner />
+          
+          {loading ? (
+            <div className="grid place-content-center py-12">
+              <LoadingSpinner />
+              <p className="text-gray-500 mt-4">Loading fresh products...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.map(item => (
+                <ProductCard
+                  key={item.id}
+                  item={item}
+                  onUpdateQuantity={updateQuantity}
+                  onOpenGrade={openGradeSelector}
+                />
+              ))}
+            </div>
+          )}
+          
+          {filtered.length === 0 && !loading && search && (
+            <div className="text-center py-12">
+              <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">No products found</h2>
+              <p className="text-gray-500 mb-6">Try searching with different keywords</p>
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => setSearch("")}
+              >
+                Clear Search
+              </Button>
+            </div>
+          )}
+        </div>
+        
+        <BottomCartBar />
+        <BottomNav />
+        
+        {/* Grade Selector Modal */}
+        {gradeOpen && (
+          <GradeSelector
+            open={!!gradeOpen}
+            onClose={closeGradeSelector}
+            item={items.find(item => item.id === gradeOpen)}
+            grade={items.find(item => item.id === gradeOpen)?.grade}
+            setGrade={(grade) => setItemGrade(gradeOpen, grade)}
+            grades={items.find(item => item.id === gradeOpen)?.product_grades || []}
+          />
+        )}
+      </div>
+    </ErrorBoundary>
+  );
+}
+
+export default KhetiKaraApp;
